@@ -62,7 +62,7 @@ async function scrapePage(browser: Browser, url: string) {
 
   const text = await page.evaluate(() => {
     document
-      .querySelectorAll('script, style, noscript, svg, img,')
+      .querySelectorAll('script, style, noscript, svg, img')
       .forEach(el => el.remove());
 
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {

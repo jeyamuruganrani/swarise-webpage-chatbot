@@ -100,7 +100,30 @@
   background-color: var(--assistant-bubble);
   border-radius: 0.25rem 1rem 1rem 1rem;
   color: black;
-  white-space: pre-line;
+  white-space: pre-line; /* preserve line breaks */
+  padding: 0.5rem 1rem;
+  
+}
+
+/* Headings inside assistant message */
+.message-bubble.assistant h1,
+.message-bubble.assistant h2,
+.message-bubble.assistant h3 {
+  margin: 0.5rem 0 0.25rem 0;
+  font-weight: bold;
+  color: #111; /* darker color for heading */
+}
+
+/* Lists inside assistant message */
+.message-bubble.assistant ul,
+.message-bubble.assistant ol {
+  margin: 0.25rem 0 0.5rem 1.25rem; /* spacing for list */
+  padding-left: 1rem;
+}
+
+.message-bubble.assistant li {
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
 }
 
 /* Timestamps */
@@ -119,7 +142,7 @@
 
 .loading-dots {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.20rem;
   align-items: center;
 }
 
