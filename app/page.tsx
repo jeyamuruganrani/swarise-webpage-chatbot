@@ -2,7 +2,21 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useState, useEffect, useRef, KeyboardEvent } from 'react';
+import Image from 'next/image'; // ✅ Fix no-img-element
 import './chat.css';
+
+// ✅ Metadata + ChatMessage typing
+interface ChatMetadata {
+  createdAt?: string;
+  form?: Record<string, unknown>;
+}
+
+interface ChatMessageWithMeta {
+  id: string;
+  role: 'user' | 'assistant';
+  parts: { type: 'text'; text: string }[];
+  metadata?: ChatMetadata;
+}
 
 export default function Chat() {
   const [input, setInput] = useState<string>('');
@@ -62,56 +76,47 @@ export default function Chat() {
     }
   };
 
-
-
-   // ----------- Form change handler with validation -----------
-   
-
+  // ----------- Form change handler with validation -----------
   const handleFormChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-) => {
-  const { name, value } = e.target;
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
 
-  if (e.target instanceof HTMLInputElement && e.target.type === "checkbox") {
-    const target = e.target as HTMLInputElement; 
-    setFormData(prev => ({
-      ...prev,
-      [name]: target.checked,
-    }));
-    return;
-  }
-
-  if (name === "fullName") {
-    const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
-    setFormData(prev => ({ ...prev, [name]: lettersOnly }));
-    return;
-  }
-
-  if (name === "phone") {
-    const numbersOnly = value.replace(/[^0-9]/g, "");
-    setFormData(prev => ({ ...prev, [name]: numbersOnly }));
-    return;
-  }
-
-
-  if (name === "email") {
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
-      setEmailError("Invalid email address"); 
-    } else {
-      setEmailError("");
+    if (e.target instanceof HTMLInputElement && e.target.type === "checkbox") {
+      const target = e.target as HTMLInputElement; 
+      setFormData(prev => ({
+        ...prev,
+        [name]: target.checked,
+      }));
+      return;
     }
-    return;
-  }
-  
 
-  setFormData(prev => ({ ...prev, [name]: value }));
-};
+    if (name === "fullName") {
+      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
+      setFormData(prev => ({ ...prev, [name]: lettersOnly }));
+      return;
+    }
 
+    if (name === "phone") {
+      const numbersOnly = value.replace(/[^0-9]/g, "");
+      setFormData(prev => ({ ...prev, [name]: numbersOnly }));
+      return;
+    }
 
-
+    if (name === "email") {
+      setFormData(prev => ({ ...prev, [name]: value }));
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        setEmailError("Invalid email address"); 
+      } else {
+        setEmailError("");
+      }
+      return;
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const submitForm = async () => {
     if (!formData.fullName.trim() || !formData.email.trim()) return;
@@ -141,10 +146,12 @@ export default function Chat() {
       {/* Header */}
       <div className="chat-header">
         <div className="header-content">
-          <img
+          <Image
             src="https://swarise.com/wp-content/uploads/2025/05/favicon.png"
             alt="Assistant"
             className="avatar"
+            width={40}
+            height={40}
           />
           <div className="header-text">
             <div className="assistant-name">Swarise Assistant</div>
@@ -158,13 +165,15 @@ export default function Chat() {
         {messages.length === 0 && (
           <div className="welcome-message">
             <div className="welcome-avatar">
-              <img
+              <Image
                 src="https://swarise.com/wp-content/uploads/2025/05/favicon.png"
                 alt="Assistant"
+                width={40}
+                height={40}
               />
             </div>
             <div className="welcome-text">
-              <h3>Hello! I'm Swarise Assistant</h3>
+              <h3>Hello! I&apos;m Swarise Assistant</h3>
               <p>How can I help you today?</p>
             </div>
           </div>
@@ -176,10 +185,12 @@ export default function Chat() {
             className={`message-row ${message.role === 'user' ? 'user' : 'assistant'}`}
           >
             {message.role === 'assistant' && (
-              <img
+              <Image
                 src="https://swarise.com/wp-content/uploads/2025/05/favicon.png"
                 alt="Assistant"
                 className="message-avatar"
+                width={32}
+                height={32}
               />
             )}
             <div className={`message-bubble ${message.role === 'user' ? 'user' : 'assistant'}`}>
@@ -189,7 +200,7 @@ export default function Chat() {
                   <div key={`${message.id}-${i}`}>{part.text}</div>
                 ))}
               <div className="message-time">
-                {formatTime((message as any).metadata?.createdAt)}
+                {formatTime((message as ChatMessageWithMeta).metadata?.createdAt)}
               </div>
             </div>
             {message.role === 'user' && (
@@ -204,10 +215,12 @@ export default function Chat() {
 
         {loading && (
           <div className="message-row assistant">
-            <img
+            <Image
               src="https://swarise.com/wp-content/uploads/2025/05/favicon.png"
               alt="Assistant"
               className="message-avatar"
+              width={32}
+              height={32}
             />
             <div className="message-bubble assistant">
               <div className="loading-dots">
@@ -306,7 +319,7 @@ export default function Chat() {
               <label className="checkbox-label">
                 <input type="checkbox" name="newsletter" checked={formData.newsletter} onChange={handleFormChange} />
                 <span className="checkmark"></span>
-                I'd like to receive news and offers
+                I&apos;d like to receive news and offers
               </label>
             </div>
 
