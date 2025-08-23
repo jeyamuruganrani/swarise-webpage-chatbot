@@ -431,7 +431,7 @@
 
 .contact-form textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 79.9px;
 }
 
 .checkbox-group {
