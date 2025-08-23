@@ -91,13 +91,19 @@
       try {
         const { embedding } = await embed({ model: embeddingModel, value }); 
         return embedding;
-      } catch (err: any) {
-        if (err.statusCode === 429 || err.message.includes("exhausted")) {
-          console.warn(`Quota hit, retrying in ${delay}ms...`);
-          await new Promise(r => setTimeout(r, delay));
-          delay *= 2;
-        } else {
-          throw err;
+      } catch (err: unknown) {
+  if (typeof err === "object" && err !== null && "statusCode" in err) {
+    const e = err as { statusCode?: number; message?: string };
+    if (e.statusCode === 429 || e.message?.includes("exhausted")) {
+      console.warn(`Quota hit, retrying in ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+      delay *= 2;
+    } else {
+      throw err;
+    }
+  } else {
+    throw err;
+
         }
       }
     }
@@ -142,7 +148,8 @@
     const queryEmb = await embedText(query);
     const { data, error } = await supabase.rpc('match_documents', { query_embedding: queryEmb, match_count: topK });
     if (error) throw error;
-    return (data ?? []).map((d: any) => d.text).join('\n\n');
+    type DocumentRow = { text: string };
+    return (data as DocumentRow[] ?? []).map(d => d.text).join("\n\n");
   }
 
   // -------- API Handler --------
@@ -155,8 +162,28 @@
 
 
     const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
-  const formData = (lastUserMessage as any)?.metadata?.form;
+  type ChatMetadata = {
+  form?: {
+    fullName: string;
+    email: string;
+    phone?: string;
+    company?: string;
+    inquiryType?: string;
+    message?: string;
+    contactMethod?: string;
+    bestTime?: string;
+    agree?: boolean;
+    newsletter?: boolean;
+  };
+};
 
+type ChatMessage = {
+  role: 'user' | 'assistant' | 'system';
+  parts: ChatPart[];
+  metadata?: ChatMetadata;
+};
+
+const formData = lastUserMessage?.metadata?.form;
   if (formData) {
     const { error } = await supabase.from('user_leads').insert([{
       name: formData.fullName,
@@ -176,7 +203,7 @@
       return new Response(JSON.stringify({ error: "Failed to save lead" }), { status: 500 });
     }
 
-    return new Response(JSON.stringify({ text: `✅ Thanks ${formData.name}! Your inquiry has been received.` }), { status: 200 });
+    return new Response(JSON.stringify({ text: `✅ Thanks ${formData.fullName}! Your inquiry has been received.` }), { status: 200 });
   }
 
 
