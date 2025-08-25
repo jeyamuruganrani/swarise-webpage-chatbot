@@ -18,7 +18,7 @@
 
   // -------- Google AI SDK --------
   const embeddingModel = google.embedding('text-embedding-004');  
-  console.log("Google API Key:", process.env.GOOGLE_API_KEY);
+  console.log("Google API Key:", process.env.GOOGLE_GENERATIVE_AI_API_KEY);
 
 
   // -------- Text chunking --------
@@ -256,8 +256,7 @@ If the user asks specifically about:
 - Email or contact of Swarise: provide exactly "info@swarise.com".
 - Phone number of Swarise: provide exactly "+919841556667".
 
-If the user message includes "Customer Follow-Up Form submitted" and metadata.form is present, 
-call the collectForm tool with metadata.form values.
+
 
 Here’s the retrieved content:
 ${retrievedText}
