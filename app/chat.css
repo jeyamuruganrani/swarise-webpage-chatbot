@@ -263,7 +263,7 @@
   color: var(--text-primary);
   font-size: 0.95rem;
   font-family: inherit;
-  padding: 0.25rem 0;
+  padding: 1.25rem 0;
   max-height: 120px;
   outline: none;
 }
