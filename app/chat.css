@@ -345,16 +345,19 @@
 
 /* Contact Form */
 .contact-form {
-  background-color: white;
+  background-color: rgb(255, 255, 255);
   border-radius: 1rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   padding: 1.5rem;
   width: 100%;
   max-width: 400px;
-  max-height: 90vh;
+  max-height: 70vh;
   overflow-y: auto;
   animation: scaleIn 0.2s ease-out;
   color: black;
+}
+.contact-form::-webkit-scrollbar{
+  width: 1px;
 }
 
 @keyframes scaleIn {
@@ -544,3 +547,8 @@
     max-width: 85%;
   }
 }
+
+
+
+
+
