@@ -552,3 +552,81 @@
 
 
 
+
+/* Inline form inside assistant bubble */
+.inline-contact-form {
+  margin-top: 0.5rem;
+  background: #f9fafb; /* light gray */
+  border-radius: 12px;
+  padding: 1rem;
+  font-size: 0.9rem;
+  max-width: 100%;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.inline-contact-form h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Grid for inputs */
+.inline-contact-form .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.inline-contact-form input,
+.inline-contact-form select,
+.inline-contact-form textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.inline-contact-form input:focus,
+.inline-contact-form select:focus,
+.inline-contact-form textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+}
+
+.inline-contact-form textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Actions */
+.inline-contact-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.inline-contact-form .submit-button {
+  background: #3b82f6;
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.inline-contact-form .submit-button:hover {
+  background: #2563eb;
+}
+
+.inline-contact-form .submit-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
