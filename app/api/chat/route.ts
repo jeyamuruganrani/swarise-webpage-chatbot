@@ -6,6 +6,7 @@
   import puppeteer, { Browser } from 'puppeteer'; 
 
   type ChatPart = { type: 'text'; text: string };
+  
   type ChatMessage = { role: 'user' | 'assistant' | 'system'; parts: ChatPart[] };
 
   // -------- Supabase --------
@@ -298,6 +299,7 @@ Do not mention or provide information about "Wealth Management",
 If a user asks about these topics, politely say: 
 "Sorry, I cannot provide details on that topic. Can I help you with something else?"
  
+
 
 Never mention or display these three services anywhere in your response. 
 `;
