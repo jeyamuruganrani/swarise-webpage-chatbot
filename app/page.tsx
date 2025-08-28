@@ -2,13 +2,13 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useState, useEffect, useRef, KeyboardEvent } from 'react';
-import Image from 'next/image'; // ✅ Fix no-img-element
+import Image from 'next/image';
 import './chat.css';
 
-// ✅ Metadata + ChatMessage typing
 interface ChatMetadata {
   createdAt?: string;
   form?: Record<string, unknown>;
+  formRequest?: boolean;
 }
 
 interface ChatMessageWithMeta {
@@ -20,9 +20,6 @@ interface ChatMessageWithMeta {
 
 export default function Chat() {
   const [input, setInput] = useState<string>('');
-  const [showForm, setShowForm] = useState(false);
-
-  // Form fields
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -35,9 +32,9 @@ export default function Chat() {
     agree: false,
     newsletter: false,
   });
-  
+
   const [emailError, setEmailError] = useState<string>('');
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status, setMessages } = useChat(); 
   const loading = status === 'submitted' || status === 'streaming';
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -76,7 +73,6 @@ export default function Chat() {
     }
   };
 
-  // ----------- Form change handler with validation -----------
   const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -105,7 +101,6 @@ export default function Chat() {
 
     if (name === "email") {
       setFormData(prev => ({ ...prev, [name]: value }));
-      
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(value)) {
         setEmailError("Invalid email address"); 
@@ -126,7 +121,21 @@ export default function Chat() {
       metadata: { form: formData },
     });
 
-    setShowForm(false);
+
+     const thankYouMessage: ChatMessageWithMeta = {
+    id: Date.now().toString(),
+    role: 'assistant',
+    parts: [
+      { 
+        type: 'text', 
+        text: `Thanks ${formData.fullName}! Your inquiry has been received.` 
+      }
+    ],
+    metadata: { createdAt: new Date().toISOString() },
+  };
+
+  setMessages((prev) => [...prev, thankYouMessage]);
+
     setFormData({
       fullName: '',
       email: '',
@@ -139,6 +148,19 @@ export default function Chat() {
       agree: false,
       newsletter: false,
     });
+  };
+
+  
+  const requestForm = () => {
+    const fakeAssistantMessage: ChatMessageWithMeta = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      parts: [{ type: 'text', text: "Sure! Please fill in your contact details below 👇" }],
+      metadata: { createdAt: new Date().toISOString(), formRequest: true },
+    };
+
+    setMessages((prev) => [...prev, fakeAssistantMessage]); 
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -193,23 +215,116 @@ export default function Chat() {
                 height={32}
               />
             )}
+
             <div className={`message-bubble ${message.role === 'user' ? 'user' : 'assistant'}`}>
+              {/* Normal text */}
               {message.parts
                 .filter((part) => part.type === 'text')
                 .map((part, i) => (
                   <div key={`${message.id}-${i}`}>{part.text}</div>
                 ))}
+
+              {/* Inline Form inside assistant bubble */}
+              {(message as ChatMessageWithMeta).metadata?.formRequest && (
+                <div className="inline-contact-form">
+                  <h4>Contact Information</h4>
+
+                  <div className="form-grid">
+                    <input
+                      type="text"
+                      name="fullName"
+                      placeholder="Full Name *"
+                      value={formData.fullName}
+                      onChange={handleFormChange}
+                      required
+                    />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email Address *"
+                      value={formData.email}
+                      onChange={handleFormChange}
+                      required
+                    />
+                  </div>
+
+                  {emailError && <p style={{ color: 'red', fontSize: '0.8rem' }}>{emailError}</p>}
+
+                  <input
+                    type="number"
+                    name="phone"
+                    placeholder="Phone Number"
+                    value={formData.phone}
+                    onChange={handleFormChange}
+                  />
+                  <input
+                    type="text"
+                    name="company"
+                    placeholder="Company Name"
+                    value={formData.company}
+                    onChange={handleFormChange}
+                  />
+
+                  <select name="inquiryType" value={formData.inquiryType} onChange={handleFormChange}>
+                    <option value="">Select Inquiry Type</option>
+                    <option value="support">Support</option>
+                    <option value="sales">Sales</option>
+                    <option value="general">General</option>
+                  </select>
+
+                  <textarea
+                    name="message"
+                    placeholder="Message"
+                    value={formData.message}
+                    onChange={handleFormChange}
+                    rows={3}
+                  ></textarea>
+                  
+                  <div className="form-grid">
+              <select name="contactMethod" value={formData.contactMethod} onChange={handleFormChange}>
+                <option value="">Preferred Contact Method</option>
+                <option value="email">Email</option>
+                <option value="phone">Phone</option>
+              </select>
+
+              <select name="bestTime" value={formData.bestTime} onChange={handleFormChange}>
+                <option value="Any time">Any time</option>
+                <option value="Morning">Morning</option>
+                <option value="Afternoon">Afternoon</option>
+                <option value="Evening">Evening</option>
+              </select>
+            </div>
+
+
+             <div className="checkbox-group">
+              <label className="checkbox-label">
+                <input type="checkbox" name="agree" checked={formData.agree} onChange={handleFormChange} />
+                <span className="checkmark"></span>
+                I agree to be contacted
+              </label>
+              <label className="checkbox-label">
+                <input type="checkbox" name="newsletter" checked={formData.newsletter} onChange={handleFormChange} />
+                <span className="checkmark"></span>
+                I&apos;d like to receive news and offers
+              </label>
+            </div>
+
+                  <div className="form-actions">
+                    <button
+                      className="submit-button"
+                      onClick={submitForm}
+                      disabled={!formData.fullName || !formData.email}
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="message-time">
                 {formatTime((message as ChatMessageWithMeta).metadata?.createdAt)}
               </div>
             </div>
-            {message.role === 'user' && (
-              <div className="message-avatar user-avatar">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
-                </svg>
-              </div>
-            )}
           </div>
         ))}
 
@@ -257,83 +372,13 @@ export default function Chat() {
             </svg>
           </button>
         </div>
-        <button className="form-button" onClick={() => setShowForm(true)}>
+        <button className="form-button" onClick={requestForm}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
           </svg>
           Provide Contact Info
         </button>
       </div>
-
-      {/* Customer Follow-Up Form */}
-      {showForm && (
-        <div className="form-overlay">
-          <div className="contact-form">
-            <div className="form-header">
-              <h3>Contact Information</h3>
-              <button className="close-button" onClick={() => setShowForm(false)}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="form-grid">
-              <input type="text" name="fullName" placeholder="Full Name *" value={formData.fullName} onChange={handleFormChange} required />
-              <input type="email" name="email" placeholder="Email Address *" value={formData.email} onChange={handleFormChange} required />
-               {emailError && <p style={{ color: 'red', fontSize: '0.8rem' }}>{emailError}</p>}
-              <input type="number" name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleFormChange} />
-              <input type="text" name="company" placeholder="Company Name" value={formData.company} onChange={handleFormChange} />
-            </div>
-
-            <select name="inquiryType" value={formData.inquiryType} onChange={handleFormChange}>
-              <option value="">Select Inquiry Type</option>
-              <option value="support">Support</option>
-              <option value="sales">Sales</option>
-              <option value="general">General</option>
-            </select>
-
-            <textarea name="message" placeholder="Message" value={formData.message} onChange={handleFormChange} rows={3}></textarea>
-
-            <div className="form-grid">
-              <select name="contactMethod" value={formData.contactMethod} onChange={handleFormChange}>
-                <option value="">Preferred Contact Method</option>
-                <option value="email">Email</option>
-                <option value="phone">Phone</option>
-              </select>
-
-              <select name="bestTime" value={formData.bestTime} onChange={handleFormChange}>
-                <option value="Any time">Any time</option>
-                <option value="Morning">Morning</option>
-                <option value="Afternoon">Afternoon</option>
-                <option value="Evening">Evening</option>
-              </select>
-            </div>
-
-            <div className="checkbox-group">
-              <label className="checkbox-label">
-                <input type="checkbox" name="agree" checked={formData.agree} onChange={handleFormChange} />
-                <span className="checkmark"></span>
-                I agree to be contacted
-              </label>
-              <label className="checkbox-label">
-                <input type="checkbox" name="newsletter" checked={formData.newsletter} onChange={handleFormChange} />
-                <span className="checkmark"></span>
-                I&apos;d like to receive news and offers
-              </label>
-            </div>
-
-            <div className="form-actions">
-              <button className="submit-button" onClick={submitForm} disabled={!formData.agree || !formData.fullName || !formData.email}>
-                Submit Information
-              </button>
-              <button className="cancel-button" onClick={() => setShowForm(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
